@@ -6,22 +6,24 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 
-@Path("/api/reserva")
+@Path("/reserva")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class ReservaController {
+public class ReservaMongoController {
 
     @Inject
     private ReservaUseCasePort reservaUseCasePort;
 
     @POST
+    @Path("/salvar")
     public ReservaDTO criarReserva(ReservaDTO reservaDTO) {
         ReservaDTO dto = reservaUseCasePort.salvarReserva(reservaDTO);
         return dto;
     }
 
     @GET
-    public ReservaDTO buscarReserva(@QueryParam("id") String id) {
+    @Path("/buscar/{id}")
+    public ReservaDTO buscarReserva(String id) {
         ReservaDTO dto = reservaUseCasePort.buscarReserva(id);
         return dto;
     }
