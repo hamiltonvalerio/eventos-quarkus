@@ -2,8 +2,10 @@ package br.eti.valerio.coredomain.usecase;
 
 import br.eti.valerio.adapter.input.dto.ReservaDTO;
 import br.eti.valerio.adapter.input.mapper.MapperReserva;
+import br.eti.valerio.application.ports.in.ReservaProducer;
 import br.eti.valerio.application.ports.in.ReservaUseCasePort;
 import br.eti.valerio.application.ports.out.ReservaPort;
+import br.eti.valerio.coredomain.entity.Reserva;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
@@ -11,17 +13,30 @@ public class ReservaUseCasePortImpl implements ReservaUseCasePort {
 
     private final ReservaPort reservaPort;
 
+    private final ReservaProducer reservaProducer;
+
     private static final String PENDENTE_DE_PAGAMENTO = "PENDENTE DE PAGAMENTO";
 
-    public ReservaUseCasePortImpl(ReservaPort reservaPort) {
+    public ReservaUseCasePortImpl(ReservaPort reservaPort, ReservaProducer reservaProducer) {
         this.reservaPort = reservaPort;
+        this.reservaProducer = reservaProducer;
     }
 
     @Override
     public ReservaDTO salvarReserva(ReservaDTO reservaDTO) {
         reservaDTO.setStatus(PENDENTE_DE_PAGAMENTO);
         var reserva = reservaPort.salvarReserva(MapperReserva.INSTANCE.toReserva(reservaDTO));
+        if(reserva == null) {
+            throw new RuntimeException("Erro ao criar pedido");
+        }else{
+            enviarMensagem(reserva);
+        }
         return MapperReserva.INSTANCE.toReservaDTO(reserva);
+    }
+
+    private void enviarMensagem(Reserva reserva) {
+        System.out.println("Enviando mensagem para a reserva: " + reserva.getId());
+        reservaProducer.sendReserva(reserva.getId());
     }
 
     @Override
